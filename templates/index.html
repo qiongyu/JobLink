@@ -1,0 +1,34 @@
+{% extends "layout.html" %}
+{% block title %}
+  Job Link
+{% endblock %}
+{% block navlinks %}
+  <li><a class="active" href="/">Home</a></li>
+  <li class="divider-vertical"></li>
+  <li><a href="{{ url_for('about') }}">About</a></li>
+{% endblock %}
+{% block content %}
+  <div class="span6 offset3" style="margin-bottom:30px">
+    <p class="text-right lead" style="margin-bottom:10px">
+      <b><font size=6>Start your exciting new job&#33</font></b>
+    </p>
+    <p style="margin-bottom:20px; font-size:20px"<br/>
+      <strong> Job Link </strong><span class="Xemph">finds</span>
+      and <span class="Xemph">connects</span> you to potential 
+      <span class="Xemph">new careers</span>&#33
+    </p>
+  </div>
+  <div class="span6 offset3 text-center">
+    <form method="post" action="{{ url_for('results') }}">
+      <fieldset>
+        <label style="font-size:18px">Enter your current <b> job title </b> below</label>
+        <input type="text" name="q" data-provide="typeahead" data-source="{{ jobs }}" autocomplete="off" placeholder="Job title..." required style="font-size:18px">
+        <br/>
+        <span class="help-block" style="font-size:16px">Example: <em>research scientist</em></span>
+        <br/>
+        <button class="btn btn-inverse btn-large" type="submit">Discover your potential&#33</button>
+       </fieldset>
+     </form>
+   </div>
+ </div>
+{% endblock %}

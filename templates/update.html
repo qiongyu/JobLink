@@ -1,0 +1,19 @@
+{% extends "layout.html" %}
+{% block title %}
+  Update Needed
+{% endblock %}
+{% block navlinks %}
+  <li><a href="/">Home</a></li>
+  <li class="divider-vertical"></li>
+  <li><a class="active" href="{{ url_for('about') }}">About</a></li>
+{% endblock %}
+{% block content %}
+  <div class="span12 text-center">
+    <p class="Xtext" style="margin-bottom:20px"><font size=6>
+      <strong>Sorry</strong>, the job you searched for is not yet in our
+      database&#33 Please check back later, we update regularly =)
+    </p>
+    <br/>
+    <a class="btn btn-inverse btn-large" href="/">Try another search?</a>
+  </div>
+{% endblock %}

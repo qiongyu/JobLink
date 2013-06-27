@@ -1,0 +1,51 @@
+{% extends "layout.html" %}
+{% block title %}
+  Sorry
+{% endblock %}
+{% block bodycom %}
+  onLoad="parseInput()"
+{% endblock %}
+{% block navlinks %}
+  <li><a class="active" href="/">Home</a></li>
+  <li class="divider-vertical"></li>
+  <li><a href="{{ url_for('about') }}">About</a></li>
+{% endblock %}
+{% block content %}
+  <div class="span12 text-center">
+    <p class="Xtext" style="margin-bottom:20px"><font size=6>
+      <strong>Sorry</strong>, no matching jobs were found for
+      <span class="Xemph" id="qname"></span>, but below are the 
+      <span class="Xemph">keywords</span> we found for your job.
+    </p>
+    <div class="btn-group" id="bgroup">
+    </div>
+  </div>
+  <p class="span6 offset3 text-center", style="margin-top:30px">
+    <br/>
+    <a class="btn btn-inverse btn-large" href="/">Try another search?</a>
+  </p>
+{% endblock %}
+{% block scripts %}
+  <script>
+  function parseInput()
+    {
+      console.log("parsing");
+      query = window.location.search.substring(1);
+      params = query.split('&');
+      $("#qname").html(decodeURIComponent(params[0]));
+      html = '<div class="btn-group", style="margin-top:30px">'
+      count = 0;
+      for(i=1;i<params.length;i++){
+        html = html+'<p class="btn btn-primary btn-large" disabled="disabled">'
+        pname = decodeURIComponent(params[i]);
+        html = html + pname + '</p>'
+        count = count+1;
+        if(count == 4 && i != params.length){
+          html = html+'</div><br/><div class="btn-group", style="margin-top:30px">';
+          count = 0;
+        }
+      }
+      $(html).insertAfter('#bgroup');
+    }
+  </script>
+{% endblock %}

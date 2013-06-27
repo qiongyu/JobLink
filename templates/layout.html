@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>{% block title %}{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" charset="utf-8", http-equiv="cache-control" content="no-cache">
+  
+    <link rel="stylesheet" href="{{ config["APP_URL"] }}/static/css/bootstrap.css">
+    <link rel="stylesheet" href="{{ config["APP_URL"] }}/static/css/bootstrap-responsive.css">
+
+    <script src="http://d3js.org/d3.v3.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
+    <script src="http://latex.codecogs.com/latexit.js"></script>
+
+    <script src="{{ config["APP_URL"] }}/static/js/bootstrap.js"></script>
+  </head>
+
+  <body {% block bodycom %}{% endblock %} data-spy="scroll">
+    <!-- actual page content goes here -->
+    <div class="navbar navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container">
+          <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <div class="nav-collapse collapse">
+            <ul class="nav">
+              {% block navlinks %}
+              {% endblock %}
+            </ul>
+          </div>
+          <p class="navbar-text text-right"><strong>Job Link</strong></p>
+        </div>
+      </div>
+    </div>
+    <div class="container-fluid" style="padding-bottom:80px">
+      {% block content %}
+      {% endblock %}
+    </div>
+    <div class="navbar navbar-fixed-bottom">
+      <div class="navbar-inner">
+        <div class="container">
+          <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </body>
+{% block scripts %}
+{% endblock %}
+</html>

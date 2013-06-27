@@ -1,0 +1,90 @@
+{% extends "layout.html" %}
+{% block title %}
+  About
+{% endblock %}
+{% block navlinks %}
+  <li><a href="/">Home</a></li>
+  <li class="divider-vertical"></li>
+  <li><a class="active" href="{{ url_for('about') }}">About</a></li>
+{% endblock %}
+{% block content %}
+  <p>The <span class="Xemph">Job Link</span> algorithm is described below. 
+  In determining which jobs are most related, the fundamental step is to
+  define a "distance" measure between jobs. Then the similar jobs to any input
+  query can be
+  identified as those with the smallest separations.</p>
+  <p>I chose to define the distance as the average <b>Jaccard</b> distance 
+  between pairs of keywords for each job. The keywords were determined
+  using a <b>term-frequency inverse-document-frequency</b> measure relative to a
+  reference set of job ads. The reference set is useful for removing 
+  common terms, especially those that occur frequently in job ads but may
+  not be so common otherwise (i.e. resume, cover letter, etc).</p>
+  <p>The following is a step by step description of the algorithm and how
+  I created this webpage. All calculations were performed in 
+  <b>Python</b>.</p>
+  <ul>
+    <li> Create a general <b>SQL</b> database of job postings to be used as 
+    a reference set. These are obtained from the <b>Indeed.com</b> website 
+    through their API. </li>
+    <li> Generate a similar database containing ads for each unique job 
+    title. </li>
+    <li> Count the frequency of all words, bigrams and trigrams that occur 
+    in the reference set job ads. Repeat for each job title. This is done 
+    using <b>NLTK</b>, the Natural Language Toolkit.</li>
+    <li> Determine the keywords for each job by measuring the
+    term-frequency inverse-document-frequency (tf-idf) for each term.</li>
+      <ul>
+        <li> The term-frequency <span lang="latex">f_{term}</span> is how 
+        often the term occurs in your 
+        documents of interest. In this case, it is the number of times the
+        term occurs in the job postings for a particular job title 
+        <span lang="latex">(C_{term})</span>
+        normalized to the average number of times any term occurs. The 
+        normalization accounts for document length.</li>
+        <li> The document-frequency <span lang="latex">f_{ref}</span> is how 
+        often the term occurs 
+        in a reference set of documents. In this case, it is the number of
+        times the term occurs in the reference database of ads. This is also
+        normalized to the average number of times any term occurs.</li>
+        <li> The tf-idf is then 
+        just <span lang="latex">\frac{f_{term}}{f_{ref}}</span>.</li>
+        <li> The relevance score for each term is calculated as a function of
+        the tf-idf using the equation below. <br/>
+        <span lang="latex"> Relevance=(0.6\log\frac{f_{term}}{f_{ref}}+0.4)C_{term}</span>
+        <li> Weed out the (likely) non-sensical bigrams and trigrams by 
+        removing the ones that contain at least one stopword (frequently occuring 
+        word such as <em>and</em>). Others can be filtered out by doing a 
+        collocation analysis using the <b>pointwise-mutual information</b> of
+        the words making up the bigram/trigram. This is just a measure of how
+        coincidental it is that the words appeared together based on their individual
+        likelihoods of appearance as well as their joint likelihood. Also, do some stemming to remove unigrams
+        that mean the same thing but occur in a different form.</li>
+        <li>Identify the top <b>8</b> keywords for each job.</li>
+      </ul>
+    <li> Consider 2 jobs, A and B. Calculate the Jaccard distance between
+    pairs of keywords from A and B. The Jaccard distance is defined as <br/>
+    <span lang="latex"> J_{ij}=1-\frac{n[keyword_i(A) \cap keyword_j(B)]}{n[keyword_i(A) \cup keyword_j(B)]} </span><br/>
+    where <span lang="latex">n[keyword_i(A) \cap keyword_j(B)]</span> is 
+    the number of ads where the ith keyword from A and the jth keyword from
+    B occur simultaneously and <span lang="latex">n[keyword_i(A) \cup keyword_j(B)]</span> is the number ads where the ith keyword from A and the jth keyword
+    from B occur in total. To obtain these numbers I scan all of the ads 
+    in the database for job A and job B. </li>
+    <li> Define the distance <span lang="latex">J</span>between jobs A and 
+    B as the average of <span lang="latex">J_{ij}</span>. </li>
+    <li> Calculate a similarity score based on the Jaccard index = <span lang="latex">1-J</span> (the larger the Jaccard distance, the smaller the Jaccard
+    index and hence job similarity).
+    <li> Take the top <b>3</b> closest jobs
+    according to <span lang="latex">J</span>. </li>
+    <li> To make the circles and maps I used <b>D3</b>:
+      <ul>
+        <li> The sizes of the circles correspond to the fraction of related
+        job ads where the keyword appears.</li>
+        <li> If the keyword appears in >40% of the ads for the query job, it
+        is listed under "Keywords in common".</li> 
+      </ul>
+    </li>
+    <li> The communication between web client and web server (i.e. browser
+    and compute node) is handled by <b>Flask</b>. The webpage design uses
+    <b>Twitter Bootstrap</b>.</li>
+  </ul>
+{% endblock %}

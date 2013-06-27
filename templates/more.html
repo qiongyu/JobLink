@@ -1,0 +1,207 @@
+{% extends "layout.html" %}
+{% block title %}
+  More Information
+{% endblock %}
+{% block bodycom %}
+  onLoad='salary("");'
+{% endblock %}
+{% block navlinks %}
+  <li><a href="/">Home</a></li>
+  <li class="divider-vertical"></li>
+  <li><a class="active" href="{{ url_for('about') }}">About</a></li>
+{% endblock %}
+{% block content %}
+  <script src="http://d3js.org/topojson.v1.min.js"></script>
+  <div class="span12 text-center">
+    <div id="salary" style="font-size:24px">
+      Please wait while we fetch the salary information...
+    </div>
+    <br/>
+    <div id="maps">
+    </div>
+    <div class="span6 offset3 text-center">
+      <br/>
+      <br/>
+      <a class="btn btn-info btn-large" onclick="backresults();">Back to Results</a>
+    </div>
+  </div>
+{% endblock %}
+{% block scripts %}
+  <script>
+    inquery = window.location.search.substring(1);
+    params = inquery.split('&');
+    query = decodeURIComponent(params[0]);
+    console.log(query);
+
+    function salary(city)
+    {
+      console.log("I'm in salary!");
+
+      $.getJSON("/salary.json", {'city': city, 'q': query},
+        function(data){
+          console.log("got data!");
+
+          qsal = data["qsalary"];
+          simsalary = data["simsalary"];
+          sname = data["simjobs"];
+  
+          qcity = city.replace(/ /g, '+');
+          qname = query.replace(/ /g, '+');
+
+          if(city == '') city = 'nation-wide';
+
+          html = '<div class="row">';
+          html = html+'<div class="span4 text-center" style="font-size:12px">';
+          html = html+'<form class="form-search">For more specific salary information, enter a <b>city name</b>: ';
+          html = html+'<input class="search-query" type="text" name="city" placehold="City name...">';
+          html = html+'<button class="btn btn-inverse btn-small" onclick="javascript:return salary(this.form.city.value);">Find Salary!</button>';
+          html = html+'</form></div>';
+
+          html = html+'<div class="span4 text-center" style="font-size:30px"><span class="Xemph text-center">'+city+'</span><br/>';
+          html = html+'<span style="font-size:24px; line-height:30px">average salary information</span><br/><br/><br/></div></div>';
+
+          html = html+'<div class="row" style="font-size:24px">';
+
+          html = html+'<div class="span3"><a class="blue" href="http://www.indeed.com/jobs?q='+qname+'&l='+qcity+'" target="_blank">'+query+'</a>:</div>';
+          for(i=0;i<sname.length;i++)
+          {
+            qname = sname[i].replace(/ /g, '+');
+            html = html+'<div class="span3"><a class="green" href="http://www.indeed.com/jobs?q='+qname+'&l='+qcity+'" target="_blank">'+sname[i]+'</a>:</div>';
+          }
+          html = html+'</div>';
+
+          html = html+'<div class="row" style="font-size:32px; line-height:38px"><div class="span3"><span class="blue">'+qsal+'</span></div>';
+          for(i=0;i<sname.length;i++)
+          {
+            html = html+'<div class="span3"><span class="green">'+simsalary[i]+'</span></div>';
+          }
+          html = html+'</div>';
+          $("#salary").html(html);
+
+          nsim = data['sstate'].length;
+          html = '<div class="row"><div class="span3" style="font-size:22px; line-height:26px;">';
+          html = html+'<br/>Salary relative to <br/><span class="blue" style="font-size:24px">'+query;
+          html = html+'</span><br/>(<span class="Xemph">'+city+'</span>)<br/> on a state-by-state basis:</div>';
+          for(i=0;i<nsim;i++)
+          {
+             html = html+'<div class="span3">';
+             html = html+'<div id="map'+i+'">Loading map...</div></div>';
+          }
+          html = html+'</div>';
+
+          html = html+'<div class="row"><div class="span3"></div>';
+          html = html+'<div class="span9" id="legend"></div></div>';
+
+          $("#maps").html(html);
+          drawMap(data,qsal);
+          drawLegend();
+        }
+      );
+      return false;
+    }
+
+    function drawMap(data,qsal)
+    {
+      console.log("in draw map");
+      nsim = data["sstate"].length;
+
+      var width = 300;
+      var height = 170;
+
+      qsal = parseFloat(qsal.replace("$","").replace(",",""));
+      d3.json("/states.json", function(collection){
+        console.log("read json");
+
+        console.log(qsal);
+        for(i=0;i<nsim;i++){
+          s_sal_by_state = data["sstate"][i]
+          mapn = "#map"+i;
+          console.log(mapn);
+
+          $(mapn).html('');
+          var svg = d3.select(mapn).append("svg")
+                      .attr("width", width)
+                      .attr("height", height);
+      
+          var projection = d3.geo.albersUsa()
+                             .scale(width)
+                             .translate([width/2, height/2]);
+      
+          var states = svg.append("g")
+                          .append("g")
+                          .attr("id", "states");
+
+          states.selectAll('path')
+                .data(collection.features)
+                .enter().append('path')
+                .attr('d', d3.geo.path().projection(projection))
+                .attr('id', function(d){return d.properties.NAME.replace(/\s+/g,'');})
+                .style('fill', function(d){
+                   state = d.properties.NAME;
+console.log(s_sal_by_state[state]);
+console.log(qsal);
+                   diff = (s_sal_by_state[state]-qsal)/qsal;
+console.log(diff);
+                   if(diff < -0.25) col='#000055';
+                   else if((diff >= -0.25) && (diff < -0.2)) col='#0000aa';
+                   else if((diff >= -0.2) && (diff < -0.15)) col='#0033ee';
+                   else if((diff >= -0.15) && (diff < -0.1)) col='#3366ff';
+                   else if((diff >= -0.1) && (diff < -0.05)) col='#99aaff';
+                   else if((diff >= -0.05) && (diff < 0.05)) col='#99eebb';
+                   else if((diff >= 0.05) && (diff < 0.1)) col='#66ff77';
+                   else if((diff >= 0.1) && (diff < 0.15)) col='#00ee66';
+                   else if((diff >= 0.15) && (diff < 0.2)) col='#00cc11';
+                   else if((diff >= 0.2) && (diff < 0.25)) col='#008800';
+                   else col='#002200';
+                   return col;})
+                .style('stroke', 'white')
+                .style('stroke-width', 1);
+        }
+      });
+    }
+
+    function drawLegend(){
+      width = 820;
+      height = 90;
+      var svg = d3.select("#legend").append("svg")
+                  .attr("width", width)
+                  .attr("height", height);
+      
+      mydata = [];
+      mydata.push([0, 50, "< -25%","#000055"])
+      mydata.push([75, 50, "-25 to -20%","#0000aa"])
+      mydata.push([150, 50, "-20 to -15%","#0033ee"])
+      mydata.push([225, 50, "-15 to -10%","#3366ff"])
+      mydata.push([300, 50, "-10 to -5%","#99aaff"])
+      mydata.push([375, 50, "-5 to +5%","#99eebb"])
+      mydata.push([450, 50, "+5 to +10%","#66ff77"])
+      mydata.push([525, 50, "+10 to +15%","#00ee66"])
+      mydata.push([600, 50, "+15 to +20%","#00cc11"])
+      mydata.push([675, 50, "+20 to +25%","#008800"])
+      mydata.push([750, 50, "> +25%","#002200"])
+
+      svg.selectAll('.rect')
+         .data(mydata)
+         .enter().append("svg:rect")
+         .attr("x", function(d) {return d[0];})
+         .attr("y", function(d) {return d[1];})
+         .attr("width", 65)
+         .attr("height", 20)
+         .style("fill", function(d) {return d[3];})
+         .style("stroke-width", 1)
+         .style("stroke", "#000000");
+      svg.selectAll('.text')
+         .data(mydata)
+         .enter().append("svg:text")
+         .attr("x", function(d) {return d[0];})
+         .attr("y", function(d) {return d[1]+40;})
+         .style("font-size", "75%")
+         .style("font-weight", "bold")
+         .text(function(d) {return d[2];});
+    }
+
+    function backresults(){
+      window.location = 'backresults.html?q='+query;
+    }
+  </script>
+{% endblock %}
